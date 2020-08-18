@@ -52,6 +52,14 @@ class MainActivity : AppCompatActivity() {
             btnStartVideo.text = "Stop Video"
             takeVideo()
         }
+        btnSwitch.setOnClickListener {
+            if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+                cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            } else {
+                cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            }
+            startCamera()
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -88,7 +96,6 @@ class MainActivity : AppCompatActivity() {
                         })
                     }
 
-            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA//使用后置摄像头
             videoCapture = VideoCapture.Builder()//录像用例配置
 //                .setTargetAspectRatio(AspectRatio.RATIO_16_9) //设置高宽比
 //                .setTargetRotation(viewFinder.display.rotation)//设置旋转角度
