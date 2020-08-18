@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+
+    <com.dubhe.camera.CameraXCustomPreviewView
+        android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <Button
         android:id="@+id/btnSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_gravity="start|top"
+        android:layout_margin="40dp"
         android:text="switch"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -19,6 +26,8 @@
         android:id="@+id/btnStartVideo"
         android:layout_width="100dp"
         android:layout_height="100dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="40dp"
         android:layout_marginBottom="50dp"
         android:elevation="2dp"
         android:scaleType="fitCenter"
@@ -31,6 +40,8 @@
         android:id="@+id/camera_capture_button"
         android:layout_width="100dp"
         android:layout_height="100dp"
+        android:layout_gravity="start|bottom"
+        android:layout_margin="40dp"
         android:elevation="2dp"
         android:scaleType="fitCenter"
         android:text="Take Photo"
@@ -38,9 +49,12 @@
         app:layout_constraintEnd_toStartOf="@id/btnStartVideo"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/viewFinder"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <com.dubhe.camera.FocusImageView
+        android:id="@+id/focusView"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        app:focus_fail_id="@drawable/focus_focus_failed"
+        app:focus_focusing_id="@drawable/focus_focusing"
+        app:focus_success_id="@drawable/focus_focused" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

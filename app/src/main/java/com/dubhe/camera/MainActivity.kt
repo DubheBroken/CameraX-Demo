@@ -3,6 +3,7 @@ package com.dubhe.camera
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -15,6 +16,9 @@ import androidx.camera.core.VideoCapture.OnVideoSavedCallback
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
+import com.dubhe.camera.CameraXCustomPreviewView.CustomTouchListener
+import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.nio.ByteBuffer
@@ -22,6 +26,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 
 typealias LumaListener = (luma: Double) -> Unit
 
@@ -61,6 +67,62 @@ class MainActivity : AppCompatActivity() {
             startCamera()
         }
     }
+
+    /**
+     * 初始化手势动作
+     */
+    private fun initCameraListener() {
+        val zoomState = camera!!.cameraInfo.zoomState
+        viewFinder.setCustomTouchListener(object : CustomTouchListener {
+            override fun zoom(delta: Float) {
+                //双指缩放
+                zoomState.value?.let {
+                    val currentZoomRatio = it.zoomRatio
+                    camera!!.cameraControl.setZoomRatio(currentZoomRatio * delta)
+                }
+            }
+
+            override fun click(x: Float, y: Float) {
+                //点击对焦
+                if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+                    val factory = viewFinder.createMeteringPointFactory(cameraSelector)
+                    val point = factory.createPoint(x, y)
+                    val action = FocusMeteringAction.Builder(point, FocusMeteringAction.FLAG_AF)
+                            .setAutoCancelDuration(3, TimeUnit.SECONDS)
+                            .build()
+                    focusView.startFocus(Point(x.toInt(), y.toInt()))
+                    val future: ListenableFuture<*> = camera!!.cameraControl.startFocusAndMetering(action)
+                    future.addListener(Runnable {
+                        try {
+                            val result = future.get() as FocusMeteringResult
+                            if (result.isFocusSuccessful) {
+                                focusView.onFocusSuccess()
+                            } else {
+                                focusView.onFocusFailed()
+                            }
+                        } catch (e: Exception) {
+                            Log.e("", "", e)
+                        }
+                    }, cameraExecutor)
+                }
+            }
+
+            override fun doubleClick(x: Float, y: Float) {
+                //双击放大缩小
+                zoomState.value?.let {
+                    val currentZoomRatio = it.zoomRatio
+                    if (currentZoomRatio > it.minZoomRatio) {
+                        camera!!.cameraControl.setLinearZoom(0f)
+                    } else {
+                        camera!!.cameraControl.setLinearZoom(0.5f)
+                    }
+                }
+            }
+
+            override fun longClick(x: Float, y: Float) {}
+        })
+    }
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
@@ -109,6 +171,7 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "Use case binding failed", exc)
             }
 
+            initCameraListener()
         }, ContextCompat.getMainExecutor(this))
     }
 
